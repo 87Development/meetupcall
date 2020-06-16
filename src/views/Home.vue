@@ -1,7 +1,9 @@
 <template>
   <div class="w-screen h-100 bg-gray-900 flex direction-row justify-center py-16 relative">
-      <Modal v-if="showModal" />
-      <div class="flex mx-4 flex-wrap">
+      <Modal v-model="showModal" :visible="showModal" @close="closeModal">
+        <CharacterMoreInfo :character="this.character" />
+      </Modal>
+      <div class="flex mx-4 direction-column flex-wrap">
          <div class="w-full flex flex-wrap md:justify-between mb-4">
           <button class="bg-blue-600 w-full mb-3 md:mb-0 md:w-auto text-white font-bold py-2 px-4 border-b-4 hover:border-b-2 hover:border-t-2 border-blue-900 rounded" @click="showMeARandom">Show Random</button>
           <button class="bg-blue-600 w-full mb-3 md:mr-auto md:ml-3 md:mb-0 md:w-auto text-white font-bold py-2 px-4 border-b-4 hover:border-b-2 hover:border-t-2 border-blue-900 rounded" @click="filtersVisible = !filtersVisible">{{filterState}} Filters</button>
@@ -58,11 +60,11 @@
               </div>
           </div>
         </transition>
-        <div class="flex flex-1 flex-wrap -mx-3 overflow-hidden sm:-mx-2 md:-mx-2 lg:-mx-2 xl:-mx-2 relative">
+        <div class="flex flex-wrap -mx-3 overflow-hidden sm:-mx-2 md:-mx-2 lg:-mx-2 xl:-mx-2 relative">
             <div class="z-10 text-center font-black fixed bottom-0 left-0 w-full flex items-center justify-center align-center p-4 bg-white bg-opacity-50 text-black">
               Scroll To Load More
             </div>
-            <Character v-for="character in this.charactersToSearch" :key="character.id" :name="character.name" :character="character" @click="showMoreInfo" />
+            <Character v-for="character in this.charactersToSearch" :key="character.id" :character="character" @doModal="handleModalShow" />
         </div>
       </div>
   </div>
@@ -73,6 +75,7 @@
 import axios from 'axios';
 import '../assets/css/main.css';
 import Character from '../components/Character';
+import CharacterMoreInfo from '../components/CharacterMoreInfo';
 import Modal from '../components/Modal';
 export default {
   name: 'Home',
@@ -92,6 +95,7 @@ export default {
   },
   components: {
     Character,
+    CharacterMoreInfo,
     Modal
   },
   data() {
@@ -109,6 +113,7 @@ export default {
       searchValue: '',
       characters: [],
       characterCount: 0,
+      character: {},
       showModal: false
     }
   },
@@ -161,33 +166,15 @@ export default {
       const id = Math.floor(Math.random() * this.characterCount) + 1;
        axios.get('https://rickandmortyapi.com/api/character/' + id).then(response => {
           this.character = response.data;
-          console.log(this.character);
+          this.showModal = true;
        });
     },
-    showMoreInfo() {
-      console.log("show more info");
-    },
-    // filterByName(evt) { 
-    //  if(evt.target.value.length > 2 && evt.target.value != "") {
-    //    console.log("started");
-    //    this.$children.filter(child => {
-    //     console.log(child);
-    //     if(child.$props.name.includes(evt.target.value)) {
-    //       child._props.visible = false
-    //     }
-    //    });
-    //  } else if(evt.target.value == "") {
-    //    console.log("restarted");
-    //    this.$children.filter(child => {
-    //      child.$props.visible = true;
-    //    });
-    //  }
-    // },
-    showMore() {
-     
-    },
-    handleModalShow() {
+    handleModalShow(character) {
       this.showModal = true;
+      this.character = character;
+    },
+    closeModal() {
+      this.showModal = false;
     }
   },
   computed: {
@@ -213,7 +200,8 @@ export default {
         status: this.filter.deceased ? 'dead' : 'alive',
         ...this.filter
       }
-    }
+    },
+   
   }
 }
 </script>
